@@ -21,7 +21,7 @@ int match = 0;
 void error(const char *msg) { perror(msg); exit(0); } // Error function used for reporting issues
 //Cite https://stackoverflow.com/questions/4823177/reading-a-file-character-by-character-in-c
 
-char *decryptFile(char *file_name) {
+char *checkFile(char *file_name) {
 //the allowable keys are A-Z and space, represented as digits 
 	int ascii_val[27] = { 32, 65, 66, 67, 68, 69,	
 								 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,	
@@ -70,7 +70,24 @@ return decrypt;
 }
 
 
+void sendToServer(int socketFD, char *file, char *buffer)
+{
+	int charsWritten = 0;
+	while (charsWritten< strlen(file))
+	{
 
+//send file to the server 
+
+		charsWritten = send(socketFD, file, strlen(file),0); // Write to the server
+
+//error message sent if failure to send to server of if data is not done sending 
+
+		if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
+		if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
+
+	
+	}
+}
 
 int main(int argc, char *argv[])
 {
@@ -90,8 +107,8 @@ int main(int argc, char *argv[])
 	}
 																					 
 	//inspect for bad characters																					 
-	char* fileName = decryptFile(argv[1]);
-	char* key = decryptFile(argv[2]);
+	char* fileName = checkFile(argv[1]);
+	char* key = checkFile(argv[2]);
 
 	//if the files make it to this point there are no bad characters
 
@@ -105,54 +122,37 @@ int main(int argc, char *argv[])
 
 	strcat(fileName, "%");
 	strcat(key, "@");
-	// Set up the server address struct
-	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
-	portNumber = atoi(argv[3]); // Get the port number, convert to an integer from a string
-	serverAddress.sin_family = AF_INET; // Create a network-capable socket
-	serverAddress.sin_port = htons(portNumber); // Store the port number
-	serverHostInfo = gethostbyname("localhost"); // Convert the machine name into a special form of address
-	if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(0); }
-	memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the address
 
-	// Set up the socket
+	//Server address struct
+	//Reference: Lecture 4.3 and CS 372 Project 1&2
+	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); 
+	portNumber = atoi(argv[3]); 
+	serverAddress.sin_family = AF_INET; 
+	serverAddress.sin_port = htons(portNumber); 
+	serverHostInfo = gethostbyname("localhost"); 
+
+	if (serverHostInfo == NULL) 
+	{ 
+		fprintf(stderr, "CLIENT: ERROR, no such host\n"); 
+		exit(0); 
+	}
+
+	// Copy in the address
+	memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); 
+
+
+	//Socket creation and connection
 	socketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
-	if (socketFD < 0) error("CLIENT: ERROR opening socket");
+	if (socketFD < 0) 
+		error("CLIENT: ERROR opening socket");
 	
-	// Connect to server
-	if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to address
+	if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) 
 		error("CLIENT: ERROR connecting");
 	
+	sendToServer(socketFD, key, buffer);
+	sendToServer(socketFD, fileName, buffer);
 
-charsWrittenv2=0; 
-	while (charsWrittenv2<strlen(key))
-	{
 
-//send key  to the server 	
-	charsWrittenv2 = send(socketFD, key, strlen(key),0); // Write to the server
-
-//error message if failure to send to server or data still needs to be written 
-
-		if (charsWrittenv2 < 0) error("CLIENT: ERROR writing to socket");
-		if (charsWrittenv2 < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
-
-	}
-
-charsWritten=0;
-
-	while (charsWritten< strlen(fileName))
-	{
-
-//send file to the server 
-
-		charsWritten = send(socketFD, fileName, strlen(fileName),0); // Write to the server
-
-//error message sent if failure to send to server of if data is not done sending 
-
-		if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
-		if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
-
-	
-	}
 
 //receive message from server
 memset(stop,'\0', sizeof(stop));
