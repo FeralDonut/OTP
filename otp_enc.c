@@ -1,4 +1,14 @@
-
+/*
+ Name: Jose-Antonio D. Rubio
+ OSUID: 932962915
+ Class: 372-400
+ OTP - otp_enc.c
+ COMMENT:
+	connects to otp_enc_d, and asks it to perform a one-time pad style encryption
+	otp_enc receives the ciphertext back from otp_enc_d, it should output it to stdout
+	If otp_enc receives key or plaintext files with ANY bad characters in them, 
+	or the key file is shorter than the plaintext, then it should terminate,
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,11 +18,21 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 
-//Cite CS344 Lectures and notes 
-int MAX = 1000000, MAX2= 1000020; 
-int match = 0; 
+#define MAX 1000000
+
+
+/*
+ NAME
+    error
+ SYNOPSIS
+    Pointer to a string 
+ DESCRIPTION
+    Takes in an error message and sends it to stderr and then poltiely exits
+ RESOURCE
+ 	Lecture videos
+*/
 void error(const char *msg) { perror(msg); exit(0); } // Error function used for reporting issues
-//Cite https://stackoverflow.com/questions/4823177/reading-a-file-character-by-character-in-c
+
 
 /*
  NAME
@@ -76,7 +96,7 @@ return decrypt;
 
 /*
  NAME
-    sendToServer
+    sendThroughSoecket
  SYNOPSIS
     takes in a socketFD, a pointer to a file name, and pointer to a buffer 
  DESCRIPTION
@@ -85,7 +105,7 @@ return decrypt;
  	Lecture videos
  	CS 372 Project 1 & 2
 */
-void sendToServer(int socketFD, char *file, char *buffer)
+void sendThroughSoecket(int socketFD, char *file, char *buffer)
 {
 	int chars_written = 0;
 	while (chars_written< strlen(file))
@@ -169,23 +189,22 @@ int main(int argc, char *argv[])
 	if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) 
 		error("ERROR connecting");
 
-	sendToServer(socketFD, key, buffer);
-	sendToServer(socketFD, file_name, buffer);
+	sendThroughSoecket(socketFD, key, buffer);
+	sendThroughSoecket(socketFD, file_name, buffer);
 
-	//receive message from server
 	memset(checker,'\0', sizeof(checker));
 	chars_read=recv(socketFD,checker,sizeof(checker)-1,0);
-		if (chars_read < 0) error("ERROR reading from socket");
+	if (chars_read < 0) 
+		error("ERROR reading from socket");
 
 	if(checker[0] =='!')
 	{
-	//if message received contains ! that means the client is trying to connect to wrong server
-	 fprintf(stderr, "Error: otp_dec cannot use otp_enc_d.\n");
-
-	exit(2);
+		//if message received contains ! that means the client is trying to connect to wrong server
+		fprintf(stderr, "Error: otp_dec cannot use otp_enc_d on port %d.\n", portNumber);
+		exit(2);
 	}
 
-	//response from server
+	//response back
 	memset(buffer, '\0', sizeof(buffer));
 	chars_read = recv(socketFD, buffer, sizeof(buffer) - 1, 0); 
 	if (chars_read < 0) error("ERROR reading from socket");

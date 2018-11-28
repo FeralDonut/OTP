@@ -18,9 +18,17 @@
 
 #define MAX  1000000
 
-
+/*
+ NAME
+    error
+ SYNOPSIS
+    Pointer to a string 
+ DESCRIPTION
+    Takes in an error message and sends it to stderr and then poltiely exits
+ RESOURCE
+ 	Lecture videos
+*/
 void error(const char *msg) { perror(msg); exit(0); } // Error function used for reporting issues
-//Cite https://stackoverflow.com/questions/4823177/reading-a-file-character-by-character-in-c
 
 /*
  NAME
@@ -36,17 +44,17 @@ void error(const char *msg) { perror(msg); exit(0); } // Error function used for
 */
 char *checkFile(char *file_name) 
 {
-//ascii numbers for space and A-Z
+	//ascii numbers for space and A-Z
 	int ascii_val[27] = { 32, 65, 66, 67, 68, 69,	
 								 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,	
 								 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90};
 	int i, temp;
-//read file that is passed in 
+	
 
 	FILE *file = fopen(file_name, "r");
 	char *decrypt;
 	size_t n = 0;
-	int c, match=0;
+	int c, checks_out=0;
 
 	if (file == NULL) 
 		return NULL; 
@@ -64,14 +72,13 @@ char *checkFile(char *file_name)
 		//make sure character are in our decryption key or newline
 		for (i = 0; i < 27; i++)
 		{
-
 			if (temp == ascii_val[i]|| temp =='\n')
 			{
-				match = 1;
+				checks_out = 1;
 			}
 		}
-//if not match is found that means that there are invalid characters not belonging to the key selection array 
-			if (!match)
+
+			if (!checks_out)
 			{
 				fprintf(stderr, "ERROR: Invalid characters in file %s\n",file_name);
 				exit(1);
@@ -84,49 +91,36 @@ return decrypt;
 }
 
 
-void sendToServer(int socketFD, char *file, char *buffer)
+/*
+ NAME
+    sendThroughSocket
+ SYNOPSIS
+    takes in a socketFD, a pointer to a file name, and pointer to a buffer 
+ DESCRIPTION
+    sends file over the socket and repeats until entire file is sent
+ RESOURCE
+ 	Lecture videos
+ 	CS 372 Project 1 & 2
+*/
+void sendThroughSocket(int socketFD, char *file, char *buffer)
 {
 	int chars_written = 0;
 	while (chars_written< strlen(file))
 	{
-
-//send file to the server 
-
-		chars_written = send(socketFD, file, strlen(file),0); // Write to the server
-
-//error message sent if failure to send to server of if data is not done sending 
+		chars_written = send(socketFD, file, strlen(file),0);
 
 		if (chars_written < 0) 
 			error("ERROR writing to socket");
 		if (chars_written < strlen(buffer)) 
 			printf("Not all data written to socket!\n");
-
-	
 	}
 }
 
-void receiveFromServer(int socketFD,  char *buffer, char *decrypt_msg)
-{
-	int chars_read = 0;
-	
-	memset(buffer,'\0', sizeof(buffer));
-	chars_read=recv(socketFD,buffer,sizeof(buffer)-1,0);
-
-	if (chars_read < 0) 
-		error("ERROR reading from socket");
-
-	if(buffer[0] =='!')
-	{
-	//if message received contains ! that means the client is trying to connect to wrong server
-	 fprintf(stderr, "Error: otp_dec cannot use otp_enc_d.\n");
-
-	exit(2);
-	}
-
-	strcat(decrypt_msg, buffer);
-}
 
 
+/*******************************
+			MAIN
+*******************************/
 int main(int argc, char *argv[])
 {
 
@@ -148,16 +142,14 @@ int main(int argc, char *argv[])
 	char* file_name = checkFile(argv[1]);
 	char* key = checkFile(argv[2]);
 
-	//if the files make it to this point there are no bad characters
-
-	//check if the key is too short 
+	//check if the key length
 	if (strlen(file_name) >  strlen(key))
 	{
 		fprintf(stderr, "Key is too short\n");
 		exit(1);
-
 	}
 
+	//add in deliminators
 	strcat(file_name, "%");
 	strcat(key, "@");
 
@@ -171,7 +163,7 @@ int main(int argc, char *argv[])
 
 	if (serverHostInfo == NULL) 
 	{ 
-		fprintf(stderr, "CLIENT: ERROR, no such host\n"); 
+		fprintf(stderr, "ERROR, no such host\n"); 
 		exit(0); 
 	}
 
@@ -182,25 +174,24 @@ int main(int argc, char *argv[])
 	//Socket creation and connection
 	socketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
 	if (socketFD < 0) 
-		error("CLIENT: ERROR opening socket");
+		error("ERROR opening socket");
 	
 	if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) 
-		error("CLIENT: ERROR connecting");
+		error("ERROR connecting socket");
 	
-	sendToServer(socketFD, key, buffer);
-	sendToServer(socketFD, file_name, buffer);
+	sendThroughSocket(socketFD, key, buffer);
+	sendThroughSocket(socketFD, file_name, buffer);
 
-	//receive message from server
+	//receive message back
 	memset(checker,'\0', sizeof(checker));
 	chars_read=recv(socketFD,checker,sizeof(checker)-1,0);
 		if (chars_read < 0) error("ERROR reading from socket");
 
 	if(checker[0] =='!')
 	{
-	//if message received contains ! that means the client is trying to connect to wrong server
-	 fprintf(stderr, "Error: otp_dec cannot use otp_enc_d.\n");
-
-	exit(2);
+		//!denotes wrong server was attempted
+		fprintf(stderr, "Error: otp_dec cannot use otp_enc_d.\n");
+		exit(2);
 	}
 
 	//response from server

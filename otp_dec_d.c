@@ -1,4 +1,12 @@
-
+/*
+ Name: Jose-Antonio D. Rubio
+ OSUID: 932962915
+ Class: 372-400
+ OTP - otp_dec_d.c
+ COMMENT:
+	this program connects with otp_dec.c
+	decrypt ciphertext it is given, using the passed-in ciphertext and key. Thus, it returns plaintext again
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,33 +30,45 @@
 */
 void error(const char*msg) {perror(msg); exit(1);}
 
+
+/*
+ NAME
+    decryptMessage
+ SYNOPSIS
+    Pointer to two strings and a buffer to hold the decryption
+ DESCRIPTION
+    Uses key to decrypt file message with ascii manipulation
+ RESOURCE
+ 	Lecture videos
+ 	Assignment specs
+ 	Ascii table
+*/
 void decryptMessage(char *file, char *key, char *decrypt)
 {
 	int i, temp;
 	for (i = 0;i < strlen(file)-1; i++)
 		{
 			temp=0;
-			//shift space to left bracket
+			
+			//kept getting open brackets showing up when running
+			//shifting spaces to open brack to shift back later
 			if(file[i] == 32)
 				file[i]= 91;
-
-			//shift space to left bracket
 			if (key[i] == 32)
 				key[i]=91;
 
 
-			//do reverse of encrypt:  frame shift letter s to have an ascii value of 0-26 and subtract final value 
+			//decrypt by reversing the encryption method and setting it to a temp place holder
 			temp= (file[i]-65)-(key[i]-65);
 
-			//if negative then add 27. add 27 since letters have been frame shifted to  be in range 0-26
+			//if temp is a negative number off set by 27
 			if (temp<0)
-				temp=temp+27;
+				temp+=27;
 			
 			//shift letters back by adding 65. 
 			decrypt[i]=65+temp;
 
-
-			//shift bracket back to space 
+			//shift open bracket back to space 
 			if (decrypt[i] == 91)
 				decrypt[i]= 32;
 		}
@@ -88,7 +108,7 @@ int main(int argc, char *argv[])
 	if (listenSocketFD < 0) 
 		error("ERROR opening socket");
 	if (bind(listenSocketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) 
-		error("ERROR on binding");
+		error("ERROR binding socket");
 	//receive up to 5 socket connections
 	listen(listenSocketFD, 5); 
 
