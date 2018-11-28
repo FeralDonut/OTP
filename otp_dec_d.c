@@ -89,6 +89,9 @@ int main(int argc, char *argv[])
 	socklen_t client_addr_size;
 	struct sockaddr_in serverAddress, clientAddress;
 
+	memset(key, '\0', sizeof(key));
+	memset(file, '\0', sizeof(file));
+
 	if (argc < 2) 
 	{
 		fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); 
