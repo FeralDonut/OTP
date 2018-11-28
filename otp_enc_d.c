@@ -47,27 +47,27 @@ void encryptMessage(char *file_msg, char *key, char *encrypt)
 	//start i at one to ignore the sentinel
 	for (i = 0;i < strlen(file_msg)-1; i++)
 	{
-		//remap space to left bracket value 
+		//kept getting errors with the space char
+		//shifting spaces to open brack to shift back later
 		if(file_msg[i] ==32)
 			file_msg[i] =91;
-		//remap space to left brack value 
 		if (key[i]== 32)
 			key[i]= 91;
 
-		//subtract 65 from the key and file so they  have ascii value of 0-26 
+		//convert to ascii values of 0-26 by subtracting by 65
 		temp= (file_msg[i]-65) +(key[i]-65);
-
-
-		// modulus encryption and  shift letterse back to their normal values by adding 65
+		// modulus encryption and shift letterse back to their normal values by adding 65
 		encrypt[i] = 65 +(temp % 27);
 
-		//remap brackets back to spaces 
+		//shift open bracket back to space
 		if (encrypt[i] == 91)
 			encrypt[i] = 32;
 	}
 	encrypt[i]='\0';
 
 }
+
+
 /*******************************
 			MAIN
 *******************************/
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
 		case 0: //child
 			memset(total_msg, '\0', sizeof(total_msg)); // Clear the buffer
-			int index=0;
+			int i=0;
 			while (strstr(total_msg, "%") == NULL) // As long as we haven't found the terminal...
 			{
 
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 					printf("r == 0\n");
 					break; 
 				}
-			index++;
+			i++;
 			}
 
 
@@ -153,25 +153,25 @@ int main(int argc, char *argv[])
 				//send ! to dec which will make dec print an error message and then exit 
 			}
 
-			//start the  index at 1 to ignore the ~
+			//start the  i at 1 to ignore the ~
 			int j=0;
-			index=1;
+			i=1;
 			//traverse until you hit the first delimiter that ends the key 
-			while(total_msg[index]!='@')
+			while(total_msg[i]!='@')
 			{
-				key[j]= total_msg[index];
-				index++;j++;//increment both indice trackers 
+				key[j]= total_msg[i];
+				i++;j++;//increment both indice trackers 
 			}
 
-			//move index forward one to ignore very next character not part of message
+			//move i forward one to ignore very next character not part of message
 
-			index++; 
+			i++; 
 			int k=0;
 
-			while (total_msg[index]!= '%')
+			while (total_msg[i]!= '%')
 			{
-				file_msg[k]=total_msg[index];
-				index++; 
+				file_msg[k]=total_msg[i];
+				i++; 
 				k++; 
 			}
 			

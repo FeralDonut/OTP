@@ -50,7 +50,7 @@ void decryptMessage(char *file, char *key, char *decrypt)
 		{
 			temp=0;
 			
-			//kept getting open brackets showing up when running
+			//kept getting errors with the space char
 			//shifting spaces to open brack to shift back later
 			if(file[i] == 32)
 				file[i]= 91;
@@ -169,13 +169,13 @@ int main(int argc, char *argv[])
 				}
 				//move it forward one 
 				i++; 
-				int k=0;
+				int j=0;
 				//parse through until we hit the message delimiter 
 				while (total_msg[i]!= '%')
 				{
-					file[k]=total_msg[i];
+					file[j]=total_msg[i];
 					i++; 
-					k++;
+					j++;
 				}
 
 
