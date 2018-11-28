@@ -198,8 +198,5 @@ int main(int argc, char *argv[])
 	}
 
 	close(listenSocketFD);
-
-
-
-	return 0; 
+return 0; 
 }
