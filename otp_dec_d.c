@@ -155,10 +155,10 @@ int main(int argc, char *argv[])
 						break; 
 					}
 				}
-				//check if the file is coming from enc by checking for ~ in first slot
-				//and send ! for not allowed
-				if(total_msg[0]== '~')
-					send(establishedConnectionFD, "!", 1, 0);
+				//check if the file is coming from enc by checking for & in first slot
+				//and send ^ for not allowed
+				if(total_msg[0]== '^')
+					send(establishedConnectionFD, "&", 1, 0);
 
 				int i=0;
 				//parse through until we hit the key deliminater

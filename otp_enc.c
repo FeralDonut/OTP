@@ -149,12 +149,12 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "ERROR: Key is too short\n");
 		exit(1);
-
 	}
 
-//files coming from enc will have a ~ before them
-
-	temp_key[0] = '~';
+	
+	//need a marker that is an unacceptable character to mark that
+	//the key is coming from otp_enc
+	temp_key[0] = '^';
 	strcat(temp_key, key);
 	strcpy(key, temp_key);
 
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 	if (chars_read < 0) 
 		error("ERROR reading from socket");
 
-	if(checker[0] =='!')
+	if(checker[0] =='^')
 	{
 		//if message received contains ! that means the client is trying to connect to wrong server
 		fprintf(stderr, "Error: otp_dec cannot use otp_enc_d on port %d.\n", portNumber);

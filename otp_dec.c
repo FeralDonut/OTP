@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 	chars_read=recv(socketFD,checker,sizeof(checker)-1,0);
 		if (chars_read < 0) error("ERROR reading from socket");
 
-	if(checker[0] =='!')
+	if(checker[0] =='&')
 	{
 		//!denotes wrong server was attempted
 		fprintf(stderr, "Error: otp_dec cannot use otp_enc_d.\n");

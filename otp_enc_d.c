@@ -4,7 +4,8 @@
  Class: 372-400
  OTP - otp_enc_d.c
  COMMENT:
-	
+	this program connects with otp_enc.c
+	encrypt plaintext it is given and returns ciphertext
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,12 +146,11 @@ int main(int argc, char *argv[])
 			}
 
 
-			//check if the file is coming from enc. enc will always send a ~ first
-			if(total_msg[0]!= '~')
+			//otp_enc messages are marked with first character being ^ 
+			if(total_msg[0]!= '^')
 			{
-				//if the message doest not begin with ~ then it is NOT from enc, so reject it 
-				send(establishedConnectionFD, "!", 1, 0);
-				//send ! to dec which will make dec print an error message and then exit 
+				//if not send message back to trigger not allowed message
+				send(establishedConnectionFD, "&", 1, 0);
 			}
 
 			//start the  i at 1 to ignore the ~
@@ -163,8 +163,8 @@ int main(int argc, char *argv[])
 				i++;j++;//increment both indice trackers 
 			}
 
-			//move i forward one to ignore very next character not part of message
 
+			//move our index one to ignore the first char used to check if message was sent by otp_enc
 			i++; 
 			int k=0;
 
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 				k++; 
 			}
 			
-			memset(encrypt, '\0', sizeof(encrypt)); // Clear the buffer
+			memset(encrypt, '\0', sizeof(encrypt)); 
 			encryptMessage(file_msg, key, encrypt);
 			//send encrypted text
 			chars_read= send(establishedConnectionFD, encrypt, strlen(encrypt), 0);
